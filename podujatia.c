@@ -36,19 +36,51 @@ typedef struct podujatie{
 void vypisSpajany(PODUJATIE* hlavicka);
 
 // Hlavne funkcie
-void n(PODUJATIE** zoznam);
+void n(PODUJATIE** zoznam, int* dlzkaZoznamu);
 void v(PODUJATIE* hlavicka);
 
 int main () {
+
+    char vyber;
     PODUJATIE* zoznamPodujatii = NULL;
+    int dlzkaZoznamu = 0;
 
-    n(&zoznamPodujatii);
-    v(zoznamPodujatii);
+    do{
 
+        //*----------------------------------------------- Inicializácia ----------------------------------------------
+                
+        scanf(" %c", &vyber);
+        getchar();
+
+        //*---------------------------------------------- Výber možnosti ----------------------------------------------
+        
+        switch (vyber){
+            case 'n':
+                n(&zoznamPodujatii, &dlzkaZoznamu);
+                break;
+            case 'v':
+                v(zoznamPodujatii);
+                break;
+            case 'p':
+                break;
+            case 'z':
+                break;
+            case 'h':
+                break;
+            case 'a':
+                break;
+            case 'r':
+                break;
+            case 'k':
+                break;
+            default:
+                break;
+        }
+    } while (vyber != 'k');
     return 0;
 }
 
-void n(PODUJATIE** hlavicka){
+void n(PODUJATIE** hlavicka, int* dlzkaZoznamu){
 
     PODUJATIE* aktualny = NULL;
     FILE* subor = fopen("OrganizacnePodujatia2.txt", "r");
@@ -173,6 +205,7 @@ void n(PODUJATIE** hlavicka){
         }
     }
     
+    *dlzkaZoznamu = pocetZaznamov;
     printf("Nacitalo sa %d zaznamov\n", pocetZaznamov);
     fclose(subor);
 }
@@ -188,6 +221,11 @@ void v(PODUJATIE* hlavicka){
         Cas prezentovania: 1120
         Datum: 20200405
      */
+
+    if(!hlavicka){
+        printf("Prázdny zoznam záznamov.\n");
+        return;
+    }
 
     PODUJATIE* aktualny = hlavicka;
 
