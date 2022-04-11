@@ -80,6 +80,35 @@ int main () {
     return 0;
 }
 
+int pocetTokenov(char* token, char* delimiter){
+    char* temp = token;
+    int pocet = 0;
+    while (temp){
+        pocet++;
+        temp = strtok(NULL, delimiter);
+    }
+    return pocet;
+}
+
+// TODO premenovat
+char** rozdelitPodlaDelimitera(char* retazec, char* delimiter, int* pocetRetazcov){
+    char* kopiaRetazca = (char*)calloc(strlen(retazec)+1, sizeof(char));
+    char* token = NULL, *temp = NULL;
+    char** pole = NULL;
+
+    strcpy(kopiaRetazca, retazec);
+    token = strtok(kopiaRetazca, delimiter);
+
+    pole = (char**) malloc(pocetTokenov(token, delimiter)*sizeof(char*));
+    for (int i = 0; token != NULL; i++){
+        pole[i] = (char*) calloc(strlen(token) + 1, sizeof(char));
+        strcpy(pole[i], token);
+        token = strtok(NULL, delimiter);
+        (*pocetRetazcov)++;
+    }
+    return pole;
+}
+
 void n(PODUJATIE** hlavicka, int* dlzkaZoznamu){
 
     PODUJATIE* aktualny = NULL;
@@ -99,7 +128,7 @@ void n(PODUJATIE** hlavicka, int* dlzkaZoznamu){
             PODUJATIE* temp = aktualny; // Ulozim si aktualny
             
             if(aktualny){ // Pokial existuje aktualny tak sa posuniem o jeden uzol dopredu
-                aktualny = (aktualny)->dalsi;
+                aktualny = aktualny->dalsi;
             }
             
             aktualny = (PODUJATIE*) malloc(sizeof(PODUJATIE)); // Alokujem novy uzol
@@ -183,6 +212,14 @@ void n(PODUJATIE** hlavicka, int* dlzkaZoznamu){
                     printf("\n");
                 */
                 
+                int pocetPrezentujucich = 0;
+                char** mena = rozdelitPodlaDelimitera(riadok, "#", &pocetPrezentujucich);
+                for(int i = 0; i < pocetPrezentujucich; i++){
+                    printf("DEBUG: %s\n", mena[i]);
+                    // TODO rozdelit mena[i] podla medzeri a nahadzat do struktury
+
+                }
+
                 aktualny->menaAutorov.meno = (char*) calloc(strlen(riadok)+1, sizeof(char));
                 strcpy(aktualny->menaAutorov.meno, riadok);
                 break;
