@@ -24,7 +24,7 @@ typedef struct menoAutora{
 typedef struct podujatie{
     int ID;
     char* nazovPrispevku;
-    MENO_AUTORA menaAutorov; // TODO spravit z tohto array
+    MENO_AUTORA* menaAutorov; // TODO spravit z tohto array
     char* typPrezentovania;
     int casPrezentovania;
     int datum;
@@ -80,27 +80,26 @@ int main () {
     return 0;
 }
 
-int pocetTokenov(char* token, char* delimiter){
+int pocetTokenov(char* token, const char* delimiter){
     char* temp = token;
     int pocet = 0;
-    while (temp){
+    while((temp = strchr(temp, ' ')) != NULL) {
         pocet++;
-        temp = strtok(NULL, delimiter);
+        temp++;
     }
     return pocet;
 }
 
 // TODO premenovat
-char** rozdelitPodlaDelimitera(char* retazec, char* delimiter, int* pocetRetazcov){
+char** rozdelitNaStringy(char* retazec, const char* delimiter, int* pocetRetazcov){
     char* kopiaRetazca = (char*)calloc(strlen(retazec)+1, sizeof(char));
-    char* token = NULL, *temp = NULL;
-    char** pole = NULL;
+    char* token = NULL, **pole = NULL;
 
     strcpy(kopiaRetazca, retazec);
     token = strtok(kopiaRetazca, delimiter);
-
+    
     pole = (char**) malloc(pocetTokenov(token, delimiter)*sizeof(char*));
-    for (int i = 0; token != NULL; i++){
+    for (int i = 0; token; i++){
         pole[i] = (char*) calloc(strlen(token) + 1, sizeof(char));
         strcpy(pole[i], token);
         token = strtok(NULL, delimiter);
@@ -212,16 +211,33 @@ void n(PODUJATIE** hlavicka, int* dlzkaZoznamu){
                     printf("\n");
                 */
                 
+
+                // TODO Z arrayu mien sprav linked list. Lepsie sa bude iterovat.
                 int pocetPrezentujucich = 0;
-                char** mena = rozdelitPodlaDelimitera(riadok, "#", &pocetPrezentujucich);
-                for(int i = 0; i < pocetPrezentujucich; i++){
-                    printf("DEBUG: %s\n", mena[i]);
-                    // TODO rozdelit mena[i] podla medzeri a nahadzat do struktury
+                char** mena = rozdelitNaStringy(riadok, "#", &pocetPrezentujucich);
+                aktualny->menaAutorov = (MENO_AUTORA*) malloc(pocetPrezentujucich*sizeof(MENO_AUTORA));
 
+                for(int k = 0; k < pocetPrezentujucich; k++){
+                    int dlzkaMena = 0;
+                    char** rozdeleneMeno = rozdelitNaStringy(mena[k], " ", &dlzkaMena);
+                    for (size_t j = 0; j < dlzkaMena; j++){
+                        if(j == 0){
+                            aktualny->menaAutorov[k].meno = (char*) calloc(strlen(rozdeleneMeno[j])+1, sizeof(char));
+                            strcpy(aktualny->menaAutorov[k].meno, rozdeleneMeno[j]);
+                        }
+                        else{
+                            if(j == 1){
+                                aktualny->menaAutorov[k].priezvisko = (char*) calloc(strlen(rozdeleneMeno[j])+1, sizeof(char));
+                                strcpy(aktualny->menaAutorov[k].priezvisko, rozdeleneMeno[j]);
+                            }
+                            else{
+                                aktualny->menaAutorov[k].priezvisko = (char*) realloc(aktualny->menaAutorov[k].priezvisko, strlen(rozdeleneMeno[j])+2*sizeof(char));
+                                strcat(aktualny->menaAutorov[k].priezvisko, " ");
+                                strcat(aktualny->menaAutorov[k].priezvisko, rozdeleneMeno[j]);
+                            }
+                        }
+                    }
                 }
-
-                aktualny->menaAutorov.meno = (char*) calloc(strlen(riadok)+1, sizeof(char));
-                strcpy(aktualny->menaAutorov.meno, riadok);
                 break;
             case 4:
                 aktualny->typPrezentovania = (char*) calloc(strlen(riadok)+1, sizeof(char));
@@ -270,7 +286,10 @@ void v(PODUJATIE* hlavicka){
         printf("%d\n", i);
         printf("ID cislo : %d\n", aktualny->ID);
         printf("Nazov prispevku: %s", aktualny->nazovPrispevku);
-        printf("Mena autorov: %s", aktualny->menaAutorov.meno);
+        printf("Mena autorov: ");
+            for (int i = 0; aktualny->menaAutorov[i].meno; i++){
+                printf("%d: %s%s", i, aktualny->menaAutorov[i].meno, aktualny->menaAutorov[i].priezvisko);
+            }
             // TODO prerobit na array mien
         printf("Typ prezentovania: %s", aktualny->typPrezentovania);
         printf("Cas prezentovania: %d\n", aktualny->casPrezentovania);
@@ -286,7 +305,8 @@ void vypisSpajany(PODUJATIE* hlavicka){
     while(aktualny){
         printf("ID: %d\n", aktualny->ID);
         printf("Nazov prispevku: %s", aktualny->nazovPrispevku);
-        printf("Meno Autora: %s", aktualny->menaAutorov.meno);
+        printf("Meno Autora: ");
+            
         printf("Typ prezentovania: %s", aktualny->typPrezentovania);
         printf("Cas prezentovania: %d\n", aktualny->casPrezentovania);
         printf("Datum: %d\n", aktualny->datum);
@@ -301,7 +321,7 @@ void vypisSpajany(PODUJATIE* hlavicka){
     while(aktualny){
         printf("ID: %d\n", aktualny->ID);
         printf("Nazov prispevku: %s", aktualny->nazovPrispevku);
-        printf("Meno Autora: %s", aktualny->menaAutorov.meno);
+        printf("Meno Autora: ");
         printf("Typ prezentovania: %s", aktualny->typPrezentovania);
         printf("Cas prezentovania: %d\n", aktualny->casPrezentovania);
         printf("Datum: %d\n", aktualny->datum);
