@@ -19,6 +19,8 @@
 typedef struct menoAutora{
     char* meno;
     char* priezvisko;
+    struct menoAutora* dalsi;
+    struct menoAutora* predchadzajuci;
 } MENO_AUTORA;
 
 typedef struct podujatie{
@@ -56,6 +58,7 @@ int main () {
         
         switch (vyber){
             case 'n':
+                // TODO FIXME random crashe ked spustim cez code runner
                 n(&zoznamPodujatii, &dlzkaZoznamu);
                 break;
             case 'v':
@@ -83,14 +86,13 @@ int main () {
 int pocetTokenov(char* token, const char* delimiter){
     char* temp = token;
     int pocet = 0;
-    while((temp = strchr(temp, ' ')) != NULL) {
+    while((temp = strstr(temp, delimiter)) != NULL) {
         pocet++;
         temp++;
     }
     return pocet;
 }
 
-// TODO premenovat
 char** rozdelitNaStringy(char* retazec, const char* delimiter, int* pocetRetazcov){
     char* kopiaRetazca = (char*)calloc(strlen(retazec)+1, sizeof(char));
     char* token = NULL, **pole = NULL;
@@ -152,93 +154,52 @@ void n(PODUJATIE** hlavicka, int* dlzkaZoznamu){
                 strcpy(aktualny->nazovPrispevku, riadok);
                 //printf("Nazov prispevku: %s", riadok); // TODO delete this
                 break;
-            case 3:
-
-                // TODO Rozsekat meno podla # a potom podla toho co je meno a co priezvisko.
-                //? Bolo by vhodne si spravit z menaAutorov pole mien autorov. To potom dynamicky naplnit
-                //? Taktiez niektore ukony s stringami si hod do extra funkcii lebo sa s toho fakt nevysomaris
-                //? Vid kod nizsie...
-
-                //! Scrap code
-                /*
-                    char* temp = (char*) calloc(strlen(riadok)+1, sizeof(char));
-                    size_t pocetMien = 0;
-                    strcpy(temp, riadok);
-                    
-                    char* token = strtok(temp, "#");
-
-                    aktualny->menaAutorov = NULL;
-
-                    while(token){
-                        pocetMien++;
-                        if(!aktualny->menaAutorov){
-                            aktualny->menaAutorov = (MENO_AUTORA*) malloc(sizeof(MENO_AUTORA));
-                        }
-                        else{
-                            aktualny->menaAutorov = (MENO_AUTORA*) realloc(aktualny->menaAutorov, pocetMien*sizeof(MENO_AUTORA));
-                        }
-
-                        (aktualny->menaAutorov[pocetMien-1]).meno = NULL;
-                        (aktualny->menaAutorov[pocetMien-1]).priezvisko = NULL;
-                        char* token2 = strtok(token, " ");
-
-                        for(int j = 0; token2; j++){
-                            if(j == 0){
-                                (aktualny->menaAutorov[pocetMien-1]).meno = (char*) calloc(strlen(token2)+1, sizeof(char));
-                                strcpy((aktualny->menaAutorov[pocetMien-1]).meno, token2);
-                            }
-                            else{
-                                if(!(aktualny->menaAutorov[pocetMien-1]).priezvisko){
-                                    (aktualny->menaAutorov[pocetMien-1]).priezvisko = (char*) calloc(strlen(token2)+1, sizeof(char));
-                                    strcpy((aktualny->menaAutorov[pocetMien-1]).priezvisko, token2);
-                                }
-                                else{
-                                    (aktualny->menaAutorov[pocetMien-1]).priezvisko = (char*) realloc((aktualny->menaAutorov[pocetMien-1]).priezvisko , strlen(token2)+strlen((aktualny->menaAutorov[pocetMien-1]).priezvisko)+2);
-                                    strcat((aktualny->menaAutorov[pocetMien-1]).priezvisko, " ");
-                                    strcat((aktualny->menaAutorov[pocetMien-1]).priezvisko, token2);
-                                }
-                            }
-                            token2 = strtok(NULL, " ");
-                        }
-                        token = strtok(NULL, "#");
-                    }
-
-
-                    printf("Mena autorov: %s", aktualny->menaAutorov[0].meno);
-                    if(aktualny->menaAutorov[1].meno){
-                        printf(" a %s", aktualny->menaAutorov[1].meno);
-                    }
-                    printf("\n");
-                */
-                
-
-                // TODO Z arrayu mien sprav linked list. Lepsie sa bude iterovat.
+            case 3:{
                 int pocetPrezentujucich = 0;
                 char** mena = rozdelitNaStringy(riadok, "#", &pocetPrezentujucich);
-                aktualny->menaAutorov = (MENO_AUTORA*) malloc(pocetPrezentujucich*sizeof(MENO_AUTORA));
+                MENO_AUTORA* hlavicka_mena = NULL, *aktualny_mena = NULL;
 
                 for(int k = 0; k < pocetPrezentujucich; k++){
                     int dlzkaMena = 0;
                     char** rozdeleneMeno = rozdelitNaStringy(mena[k], " ", &dlzkaMena);
-                    for (size_t j = 0; j < dlzkaMena; j++){
-                        if(j == 0){
-                            aktualny->menaAutorov[k].meno = (char*) calloc(strlen(rozdeleneMeno[j])+1, sizeof(char));
-                            strcpy(aktualny->menaAutorov[k].meno, rozdeleneMeno[j]);
+                    MENO_AUTORA* temp = aktualny_mena; // Ulozim si aktualny
+                    
+                    if(aktualny_mena){ // Pokial existuje aktualny tak sa posuniem o jeden uzol dopredu
+                        aktualny_mena = aktualny_mena->dalsi;
+                    }
+
+                    aktualny_mena = (MENO_AUTORA*) malloc(sizeof(MENO_AUTORA)); // Alokujem novy uzol
+                    aktualny_mena->predchadzajuci = temp; // Nastavim predchadzajuci na moj stary aktualny uzol
+                    
+                    if(!temp){ // Pokial neexistuje stary predchadzajuci uzol tak som na zaciatku...
+                        hlavicka_mena = aktualny_mena; // ...tym padom nastavim hlavicku na aktualny uzol
+                    }
+                    else{
+                        temp->dalsi = aktualny_mena;  // Inak na starom uzly nastavim moj novy uzol ako dalsi v poradi
+                    }
+                    
+                    for (int j = 0; j < dlzkaMena; j++){
+                        if(j == 0){ // Pokial som na prvej iteracii tak ulozim prvu cast retazca ako meno
+                            aktualny_mena->meno = (char*) calloc(strlen(rozdeleneMeno[j])+1, sizeof(char));
+                            strcpy(aktualny_mena->meno, rozdeleneMeno[j]);
                         }
-                        else{
-                            if(j == 1){
-                                aktualny->menaAutorov[k].priezvisko = (char*) calloc(strlen(rozdeleneMeno[j])+1, sizeof(char));
-                                strcpy(aktualny->menaAutorov[k].priezvisko, rozdeleneMeno[j]);
+                        else{ // Inak cast retazca ulozim ako priezvisko
+                            if(j == 1){ // Pokial som na druhej iteracii tak si alokujem miesto pre priezvisko
+                                aktualny_mena->priezvisko = (char*) calloc(strlen(rozdeleneMeno[j])+1, sizeof(char));
+                                strcpy(aktualny_mena->priezvisko, rozdeleneMeno[j]);
                             }
-                            else{
-                                aktualny->menaAutorov[k].priezvisko = (char*) realloc(aktualny->menaAutorov[k].priezvisko, strlen(rozdeleneMeno[j])+2*sizeof(char));
-                                strcat(aktualny->menaAutorov[k].priezvisko, " ");
-                                strcat(aktualny->menaAutorov[k].priezvisko, rozdeleneMeno[j]);
+                            else{ // Inak realokujem miesto pre priezvisko
+                                aktualny_mena->priezvisko = (char*) realloc(aktualny_mena->priezvisko, strlen(aktualny_mena->priezvisko) + strlen(rozdeleneMeno[j])+2*sizeof(char));
+                                strcat(aktualny_mena->priezvisko, " ");
+                                strcat(aktualny_mena->priezvisko, rozdeleneMeno[j]);
                             }
                         }
                     }
+                    aktualny_mena->dalsi = NULL;
                 }
+                aktualny->menaAutorov = hlavicka_mena; // Hlavicku linked listu mien nastavim ako mena autorov // TODO vylepsi tento koment :)
                 break;
+            }
             case 4:
                 aktualny->typPrezentovania = (char*) calloc(strlen(riadok)+1, sizeof(char));
                 strcpy(aktualny->typPrezentovania, riadok);
@@ -251,12 +212,14 @@ void n(PODUJATIE** hlavicka, int* dlzkaZoznamu){
             case 6:
                 aktualny->datum = atoi(riadok);
                 aktualny->dalsi = NULL;
+                printf("DEBUG\n");
                 i = -1; // O jeden menej lebo for loop tuto premennu inkrementuje na 0
                 break;
             default:
                 printf("Error");
         }
     }
+    
     
     *dlzkaZoznamu = pocetZaznamov;
     printf("Nacitalo sa %d zaznamov\n", pocetZaznamov);
@@ -286,11 +249,18 @@ void v(PODUJATIE* hlavicka){
         printf("%d\n", i);
         printf("ID cislo : %d\n", aktualny->ID);
         printf("Nazov prispevku: %s", aktualny->nazovPrispevku);
-        printf("Mena autorov: ");
-            for (int i = 0; aktualny->menaAutorov[i].meno; i++){
-                printf("%d: %s%s", i, aktualny->menaAutorov[i].meno, aktualny->menaAutorov[i].priezvisko);
+        
+        MENO_AUTORA* aktualny_mena = aktualny->menaAutorov;
+        printf("Mena autorov:\n");
+        for (int j = 1; aktualny_mena; j++) {
+            printf("%d: %s %s", j, aktualny_mena->meno, aktualny_mena->priezvisko);
+            if(aktualny_mena->dalsi){
+                printf("\n");
             }
-            // TODO prerobit na array mien
+            aktualny_mena = aktualny_mena->dalsi;
+        }
+
+        // TODO prerobit na array mien
         printf("Typ prezentovania: %s", aktualny->typPrezentovania);
         printf("Cas prezentovania: %d\n", aktualny->casPrezentovania);
         printf("Datum: %d\n", aktualny->datum);
