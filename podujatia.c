@@ -204,6 +204,7 @@
 
 #define VELKOST_BUFFERA 200
 
+// TODO ocheckovat ci exituje zoznam pri ostanych funkciach
 typedef struct menoAutora{
     char* meno;
     char* priezvisko;
@@ -214,7 +215,7 @@ typedef struct menoAutora{
 typedef struct podujatie{
     int ID;
     char* nazovPrispevku;
-    MENO_AUTORA* menaAutorov; // TODO spravit z tohto array
+    MENO_AUTORA* menaAutorov;
     char* typPrezentovania;
     int casPrezentovania;
     int datum;
@@ -222,19 +223,29 @@ typedef struct podujatie{
     struct podujatie* predchadzajuci;
 } PODUJATIE;
 
+typedef struct spajanyZoznam{
+    PODUJATIE* hlavicka;
+    PODUJATIE* chvost;
+    int dlzka;
+} SPAJANY_ZOZNAM;
+
 // Pomocne funkcie
-void vypisSpajany(PODUJATIE* hlavicka);
+void vypisSpajany(SPAJANY_ZOZNAM zoznam);
 
 // Hlavne funkcie
-void n(PODUJATIE** zoznam);
-void v(PODUJATIE* hlavicka);
-void k(PODUJATIE** hlavicka);
-void z(PODUJATIE** hlavicka);
+void n(SPAJANY_ZOZNAM* zoznam);
+void v(SPAJANY_ZOZNAM zoznam);
+void k(SPAJANY_ZOZNAM* zoznam);
+void z(SPAJANY_ZOZNAM* zoznam);
+void p(SPAJANY_ZOZNAM* zoznam);
 
 int main () {
 
     char vyber;
-    PODUJATIE* zoznamPodujatii = NULL;
+    SPAJANY_ZOZNAM zoznamPodujatii;
+    zoznamPodujatii.hlavicka = NULL;
+    zoznamPodujatii.chvost = NULL;
+    zoznamPodujatii.dlzka = 0;
 
     do{
 
@@ -254,6 +265,7 @@ int main () {
                 v(zoznamPodujatii);
                 break;
             case 'p':
+                p(&zoznamPodujatii);
                 break;
             case 'z':
                 z(&zoznamPodujatii);
@@ -310,8 +322,8 @@ char* retazecNaMale(char* retazec){
     return malyRetazec;
 }
 
-void k(PODUJATIE** hlavicka){
-    PODUJATIE* aktualny = *hlavicka;
+void k(SPAJANY_ZOZNAM* zoznam){
+    PODUJATIE* aktualny = zoznam->hlavicka;
     while (aktualny){
         MENO_AUTORA* aktualnyMena = aktualny->menaAutorov;
         while (aktualnyMena){
@@ -333,18 +345,19 @@ void k(PODUJATIE** hlavicka){
             aktualny=NULL;
         }
     }
-    
+    zoznam->hlavicka = NULL;
+    zoznam->chvost = NULL;
+    zoznam->dlzka = 0;
 }
 
-void n(PODUJATIE** hlavicka){
+void n(SPAJANY_ZOZNAM* zoznam){
 
     PODUJATIE* aktualny = NULL;
     FILE* subor = fopen("OrganizacnePodujatia2.txt", "r");
     char riadok[VELKOST_BUFFERA];
-    int pocetZaznamov = 0;
 
-    if(*hlavicka){
-        k(hlavicka);
+    if(zoznam->hlavicka){
+        k(zoznam);
     }
 
     if(!subor){
@@ -364,12 +377,12 @@ void n(PODUJATIE** hlavicka){
             aktualny->predchadzajuci = temp; // Nastavim predchadzajuci na moj stary aktualny uzol
             
             if(!temp){ // Pokial neexistuje stary predchadzajuci uzol tak som na zaciatku...
-                *hlavicka = aktualny; // ...tym padom nastavim hlavicku na aktualny uzol
+                zoznam->hlavicka = aktualny; // ...tym padom nastavim hlavicku na aktualny uzol
             }
             else{
                 temp->dalsi = aktualny; // Inak na starom uzly nastavim moj novy uzol ako dalsi v poradi
             }
-            pocetZaznamov++;
+            zoznam->dlzka++;
             continue; // Pokracujem na dalsiu iteraciu
         }
         switch (i){
@@ -387,9 +400,9 @@ void n(PODUJATIE** hlavicka){
                 char** mena = rozdelitNaStringy(riadok, "#", &pocetPrezentujucich);
                 MENO_AUTORA* hlavicka_mena = NULL, *aktualny_mena = NULL;
 
-                for(int k = 0; k < pocetPrezentujucich; k++){
+                for(int l = 0; l < pocetPrezentujucich; l++){
                     int dlzkaMena = 0;
-                    char** rozdeleneMeno = rozdelitNaStringy(mena[k], " ", &dlzkaMena);
+                    char** rozdeleneMeno = rozdelitNaStringy(mena[l], " ", &dlzkaMena);
                     MENO_AUTORA* temp = aktualny_mena; // Ulozim si aktualny
                     
                     if(aktualny_mena){ // Pokial existuje aktualny tak sa posuniem o jeden uzol dopredu
@@ -446,12 +459,13 @@ void n(PODUJATIE** hlavicka){
                 printf("Error");
         }
     }
+    zoznam->chvost = aktualny;
     
-    printf("Nacitalo sa %d zaznamov\n", pocetZaznamov);
+    printf("Nacitalo sa %d zaznamov\n", zoznam->dlzka);
     fclose(subor);
 }
 
-void v(PODUJATIE* hlavicka){
+void v(SPAJANY_ZOZNAM zoznam){
     /*
         1.
         ID cislo : 15
@@ -463,12 +477,12 @@ void v(PODUJATIE* hlavicka){
         Datum: 20200405
      */
 
-    if(!hlavicka){
+    if(!zoznam.hlavicka){
         printf("Prázdny zoznam záznamov.\n");
         return;
     }
 
-    PODUJATIE* aktualny = hlavicka;
+    PODUJATIE* aktualny = zoznam.hlavicka;
 
     for(int i = 1; aktualny; i++){
         printf("%d\n", i);
@@ -484,8 +498,6 @@ void v(PODUJATIE* hlavicka){
             }
             aktualny_mena = aktualny_mena->dalsi;
         }
-
-        // TODO prerobit na array mien
         printf("Typ prezentovania: %s", aktualny->typPrezentovania);
         printf("Cas prezentovania: %d\n", aktualny->casPrezentovania);
         printf("Datum: %d\n", aktualny->datum);
@@ -493,8 +505,8 @@ void v(PODUJATIE* hlavicka){
     }
 }
 
-void z(PODUJATIE** hlavicka){
-    PODUJATIE* aktualny = *hlavicka;
+void z(SPAJANY_ZOZNAM* zoznam){
+    PODUJATIE* aktualny = zoznam->hlavicka;
     char* vstup = (char*)calloc(VELKOST_BUFFERA, sizeof(char));
     int bZmazat = 0;
     fgets(vstup, VELKOST_BUFFERA, stdin);
@@ -524,11 +536,11 @@ void z(PODUJATIE** hlavicka){
         if(bZmazat==1){
 
             // Zmazem vsetky mena oznaceneho uzla
-            MENO_AUTORA* aktualnyMeno = aktualny->menaAutorov;
-            while(aktualnyMeno){
-                MENO_AUTORA* pomocna = aktualnyMeno->dalsi;
-                free(aktualnyMeno);
-                aktualnyMeno = pomocna;
+            MENO_AUTORA* aktualnyMenoZmazat = aktualny->menaAutorov;
+            while(aktualnyMenoZmazat){
+                MENO_AUTORA* pomocna = aktualnyMenoZmazat->dalsi;
+                free(aktualnyMenoZmazat);
+                aktualnyMenoZmazat = pomocna;
             }
 
             // Pokial existuje predchadzajuci tak ho spojim s nasledovnym...
@@ -537,9 +549,9 @@ void z(PODUJATIE** hlavicka){
                 aktualny->predchadzajuci->dalsi = aktualny->dalsi;
             }
             else{ // Pokial neexistuje predchadzajuci tak nastavim hlavicku ako dalsi
-                *hlavicka = aktualny->dalsi;
-                if(*hlavicka){ // Dalsi nemusi vzdy existovat (napr. zmazanie celeho listu)
-                    (*hlavicka)->predchadzajuci = NULL; // Kedze sa jedna o hlavicku tak nastavim predchadzajuci na NULL
+                zoznam->hlavicka = aktualny->dalsi;
+                if(zoznam->hlavicka){ // Dalsi nemusi vzdy existovat (napr. zmazanie celeho listu)
+                    (zoznam->hlavicka)->predchadzajuci = NULL; // Kedze sa jedna o hlavicku tak nastavim predchadzajuci na NULL
                 }
             }
             aktualny->nazovPrispevku[strcspn(aktualny->nazovPrispevku, "\n")] = '\0'; // Zbavim sa entera pri nazvu prispevku
@@ -553,9 +565,76 @@ void z(PODUJATIE** hlavicka){
     }
 }
 
+void p(SPAJANY_ZOZNAM* zoznam){
+    PODUJATIE* aktualny = zoznam->hlavicka;
+    int c1 = 0;
+
+    printf("C1: "); // TODO remove
+    scanf(" %d", &c1);
+    getchar();
+
+    if(c1 <= 0){ return; }
+
+    PODUJATIE* novyUzol = (PODUJATIE*)malloc(sizeof(PODUJATIE));
+
+    printf("ID: "); // TODO remove
+    scanf(" %d", &novyUzol->ID);
+    getchar();
+
+    printf("NAZOV: "); // TODO remove
+    char temp[201] = {0};
+    fgets(temp,150, stdin);
+    novyUzol->nazovPrispevku = (char*) calloc(strlen(temp)+1, sizeof(char));
+    strcpy(novyUzol->nazovPrispevku, temp);
+
+    //TODO pridat mena
+    novyUzol->menaAutorov = NULL;
+
+    printf("TYP: "); // TODO remove
+    fgets(temp, 4, stdin);
+    novyUzol->typPrezentovania = (char*) calloc(strlen(temp)+1, sizeof(char));
+    strcpy(novyUzol->typPrezentovania, temp);
+
+    printf("CAS: "); // TODO remove
+    fgets(temp, 6, stdin);
+    novyUzol->casPrezentovania = atoi(temp);
+
+    printf("DATUM: "); // TODO remove
+    fgets(temp, 10, stdin);
+    novyUzol->datum = atoi(temp);
+
+    if(c1 >= zoznam->dlzka){
+        zoznam->chvost->dalsi = novyUzol;
+        novyUzol->predchadzajuci = zoznam->chvost;
+        novyUzol->dalsi = NULL;
+        zoznam->chvost = novyUzol;
+        zoznam->dlzka++;
+        return;
+    }
+
+    for(int i = 0; aktualny; i++){
+        if(i == c1-1){
+            novyUzol->dalsi = aktualny;
+            if(aktualny->predchadzajuci){
+                novyUzol->predchadzajuci = aktualny->predchadzajuci;
+                aktualny->predchadzajuci->dalsi = novyUzol;
+            }
+            else{
+                novyUzol->predchadzajuci = NULL;
+                zoznam->hlavicka->predchadzajuci = novyUzol;
+                zoznam->hlavicka = novyUzol;
+            }
+            zoznam->dlzka++;
+            break;
+        }
+        aktualny = aktualny->dalsi;
+    }
+    
+}
+
 // TODO uprav alebo zmaz tuto funkciu
-void vypisSpajany(PODUJATIE* hlavicka){
-    PODUJATIE* aktualny = hlavicka;
+void vypisSpajany(SPAJANY_ZOZNAM zoznam){
+    PODUJATIE* aktualny = zoznam.hlavicka;
 
     while(aktualny){
         printf("ID: %d\n", aktualny->ID);
