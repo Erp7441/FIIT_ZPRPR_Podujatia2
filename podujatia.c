@@ -559,6 +559,7 @@ void z(SPAJANY_ZOZNAM* zoznam){
             PODUJATIE* pomocny = aktualny; // Ulozim si aktualny uzol
             aktualny = aktualny->dalsi; // Posuniem sa na dalsi udaj
             free(pomocny); // A uviolnim stary uzol
+            zoznam->dlzka--;
             bZmazat=0; // Resetujem "boolean"
         }
         else{ aktualny = aktualny->dalsi; } // Pokial nemam co vymazat idem na dalsi uzol
