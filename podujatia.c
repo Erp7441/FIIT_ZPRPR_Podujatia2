@@ -238,6 +238,7 @@ void v(SPAJANY_ZOZNAM zoznam);
 void k(SPAJANY_ZOZNAM* zoznam);
 void z(SPAJANY_ZOZNAM* zoznam);
 void p(SPAJANY_ZOZNAM* zoznam);
+void r(SPAJANY_ZOZNAM* zoznam);
 
 int main () {
 
@@ -275,6 +276,7 @@ int main () {
             case 'a':
                 break;
             case 'r':
+                r(&zoznamPodujatii);
                 break;
             case 'k':
                 k(&zoznamPodujatii);
@@ -323,6 +325,7 @@ char* retazecNaMale(char* retazec){
 }
 
 void k(SPAJANY_ZOZNAM* zoznam){
+
     PODUJATIE* aktualny = zoznam->hlavicka;
     while (aktualny){
         MENO_AUTORA* aktualnyMena = aktualny->menaAutorov;
@@ -466,6 +469,7 @@ void n(SPAJANY_ZOZNAM* zoznam){
 }
 
 void v(SPAJANY_ZOZNAM zoznam){
+
     /*
         1.
         ID cislo : 15
@@ -506,6 +510,7 @@ void v(SPAJANY_ZOZNAM zoznam){
 }
 
 void z(SPAJANY_ZOZNAM* zoznam){
+
     PODUJATIE* aktualny = zoznam->hlavicka;
     char* vstup = (char*)calloc(VELKOST_BUFFERA, sizeof(char));
     int bZmazat = 0;
@@ -567,6 +572,7 @@ void z(SPAJANY_ZOZNAM* zoznam){
 }
 
 void p(SPAJANY_ZOZNAM* zoznam){
+
     PODUJATIE* aktualny = zoznam->hlavicka;
     int c1 = 0;
 
@@ -633,8 +639,75 @@ void p(SPAJANY_ZOZNAM* zoznam){
     
 }
 
+// TODO prerobit
+void r(SPAJANY_ZOZNAM* zoznam){
+    
+    PODUJATIE* aktualny = zoznam->hlavicka;
+    int c1 = 0, c2 = 0;
+
+    printf("C1: "); // TODO remove
+    scanf(" %d", &c1);
+    getchar();
+    printf("C2: "); // TODO remove
+    scanf(" %d", &c2);
+    getchar();
+
+    if((c1 <= 0 || c2 <= 0) || (c1 > zoznam->dlzka || c2 > zoznam->dlzka) || (c1 == c2)){ return; }
+
+    if(c1 > c2){
+        int temp = c1;
+        c1 = c2;
+        c2 = temp;
+    }
+
+    PODUJATIE* prvy = NULL, *druhy = NULL, *temp = NULL;
+
+    for (int i = 1; aktualny; i++){
+        if(i == c1) prvy = aktualny;
+        else if (i == c2) druhy = aktualny;
+        aktualny = aktualny->dalsi;
+    }
+
+    if(prvy == zoznam->hlavicka){
+        zoznam->hlavicka = druhy;
+    }
+    else if(druhy == zoznam->hlavicka){
+        zoznam->hlavicka = prvy;
+    }
+    if(prvy == zoznam->chvost){
+        zoznam->chvost = druhy;
+    }
+    else if(druhy == zoznam->chvost){
+        zoznam->chvost = prvy;
+    }
+
+    temp = prvy->dalsi;
+    prvy->dalsi = druhy->dalsi;
+    druhy->dalsi = temp;
+
+    if(prvy->dalsi){
+        prvy->dalsi->predchadzajuci = prvy;
+    }
+    if(druhy->dalsi){
+        druhy->dalsi->predchadzajuci = druhy;
+    }
+
+    temp = prvy->predchadzajuci;
+    prvy->predchadzajuci = druhy->predchadzajuci;
+    druhy->predchadzajuci = temp;
+
+    if(prvy->predchadzajuci){
+        prvy->predchadzajuci->dalsi = prvy;
+    }
+    if(druhy->predchadzajuci){
+        druhy->predchadzajuci->dalsi = druhy;
+    }
+
+}
+
 // TODO uprav alebo zmaz tuto funkciu
 void vypisSpajany(SPAJANY_ZOZNAM zoznam){
+    
     PODUJATIE* aktualny = zoznam.hlavicka;
 
     while(aktualny){
