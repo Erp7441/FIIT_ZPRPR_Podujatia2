@@ -708,6 +708,51 @@ void r(SPAJANY_ZOZNAM* zoznam){
 
 void a(SPAJANY_ZOZNAM* zoznam){
     
+    if(zoznam->hlavicka == NULL) { return; } 
+
+    int IDVstup = 0;
+    char* typVstup = (char*) calloc(4, sizeof(char));
+    
+    while(1){
+        scanf(" %d%s", &IDVstup, typVstup);
+        getchar();
+
+        if(
+            IDVstup % 15 != 0 ||
+            (
+                strcmp(typVstup, "UP") != 0 && 
+                strcmp(typVstup, "UD") != 0 && 
+                strcmp(typVstup, "PP") != 0 && 
+                strcmp(typVstup, "PD") != 0
+            )
+            
+        ){
+            printf("Zadane udaje nie su korektne, zadaj novy retazec:");
+            continue;
+        }
+        break;
+    }
+
+    PODUJATIE* aktualny = zoznam->hlavicka;
+    char* predchadzajuciTyp = NULL;
+    strcat(typVstup, "\n");
+
+    while(aktualny){
+        if(aktualny->ID == IDVstup){
+            predchadzajuciTyp = (char*) calloc(4, sizeof(char));
+            strcpy(predchadzajuciTyp, aktualny->typPrezentovania);
+            strcpy(aktualny->typPrezentovania, typVstup);
+            break;
+        }
+    }    
+
+    if(predchadzajuciTyp){
+        printf("Prispevok s nazvom %.*s sa bude prezentovat %.*s[%.*s].\n",
+            (int)strlen(aktualny->nazovPrispevku)-1, aktualny->nazovPrispevku,
+            (int)strlen(aktualny->typPrezentovania)-1, aktualny->typPrezentovania,
+            (int)strlen(predchadzajuciTyp)-1, predchadzajuciTyp
+        );
+    }    
 }
 
 void h(SPAJANY_ZOZNAM zoznam){
