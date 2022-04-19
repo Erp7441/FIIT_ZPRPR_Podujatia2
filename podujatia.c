@@ -238,6 +238,8 @@ void r(SPAJANY_ZOZNAM* zoznam);
 void a(SPAJANY_ZOZNAM* zoznam);
 void h(SPAJANY_ZOZNAM zoznam);
 
+char** rozdelitNaStringy(char* retazec, char delimiter, int* pocetRetazcov);
+
 int main () {
 
     char vyber;
@@ -287,29 +289,28 @@ int main () {
     return 0;
 }
 
-int pocetTokenov(char* token, const char* delimiter){
-    char* temp = token;
-    int pocet = 0;
-    while((temp = strstr(temp, delimiter)) != NULL) {
-        pocet++;
-        temp++;
+char** rozdelitNaStringy(char* retazec, char delimiter, int* pocetRetazcov){
+    char**pole = NULL;
+    int pozicia = 0, index = 0;
+
+    for(size_t i = 0; i < strlen(retazec); i++){
+        if(retazec[i] == delimiter){ (*pocetRetazcov)++; }
     }
-    return pocet;
-}
-
-char** rozdelitNaStringy(char* retazec, const char* delimiter, int* pocetRetazcov){
-    char* kopiaRetazca = (char*)calloc(strlen(retazec)+1, sizeof(char));
-    char* token = NULL, **pole = NULL;
-
-    strcpy(kopiaRetazca, retazec);
-    token = strtok(kopiaRetazca, delimiter);
+    (*pocetRetazcov)++;
     
-    pole = (char**) malloc(pocetTokenov(token, delimiter)*sizeof(char*));
-    for (int i = 0; token; i++){
-        pole[i] = (char*) calloc(strlen(token) + 1, sizeof(char));
-        strcpy(pole[i], token);
-        token = strtok(NULL, delimiter);
-        (*pocetRetazcov)++;
+    pole = (char**) malloc((*pocetRetazcov)*sizeof(char*));
+    pole[pozicia] = (char*) calloc(VELKOST_BUFFERA,sizeof(char));
+
+    for (size_t i = 0; i < strlen(retazec); i++){
+        if(retazec[i] == delimiter){
+            index = 0;
+            pozicia++;
+            pole[pozicia] = (char*) calloc(VELKOST_BUFFERA,sizeof(char));
+            continue;
+        }
+
+        pole[pozicia][index] = retazec[i];
+        index++;
     }
     return pole;
 }
@@ -323,15 +324,24 @@ char* retazecNaMale(char* retazec){
     return malyRetazec;
 }
 
-// TODO fix... crashe probably v tejto funkcii na Windowse
+void free2Dchar(char** pole, int dlzka){
+    for (int i = 0; i < dlzka; i++){
+        free(pole[i]);
+        pole[i] = NULL;
+    }
+    free(pole);
+    pole = NULL;
+}
+
+
 MENO_AUTORA* vytvorListMien(char* retazec){
     int pocetPrezentujucich = 0;
-    char** mena = rozdelitNaStringy(retazec, "#", &pocetPrezentujucich);
+    char** mena = rozdelitNaStringy(retazec, '#', &pocetPrezentujucich);
     MENO_AUTORA* hlavicka_mena = NULL, *aktualny_mena = NULL;
 
     for(int l = 0; l < pocetPrezentujucich; l++){
         int dlzkaMena = 0;
-        char** rozdeleneMeno = rozdelitNaStringy(mena[l], " ", &dlzkaMena);
+        char** rozdeleneMeno = rozdelitNaStringy(mena[l], ' ', &dlzkaMena); // TODO fix... crashe probably v tejto funkcii na Windowse
         MENO_AUTORA* temp = aktualny_mena; // Ulozim si aktualny
         
         if(aktualny_mena){ // Pokial existuje aktualny tak sa posuniem o jeden uzol dopredu
@@ -351,22 +361,24 @@ MENO_AUTORA* vytvorListMien(char* retazec){
         for (int j = 0; j < dlzkaMena; j++){
             if(j == 0){ // Pokial som na prvej iteracii tak ulozim prvu cast retazca ako meno
                 aktualny_mena->meno = (char*) calloc(strlen(rozdeleneMeno[j])+1, sizeof(char));
-                strcpy(aktualny_mena->meno, rozdeleneMeno[j]);
+                strncpy(aktualny_mena->meno, rozdeleneMeno[j], strlen(rozdeleneMeno[j])+1);
             }
             else{ // Inak cast retazca ulozim ako priezvisko
                 if(j == 1){ // Pokial som na druhej iteracii tak si alokujem miesto pre priezvisko
                     aktualny_mena->priezvisko = (char*) calloc(strlen(rozdeleneMeno[j])+1, sizeof(char));
-                    strcpy(aktualny_mena->priezvisko, rozdeleneMeno[j]);
+                    strncpy(aktualny_mena->priezvisko, rozdeleneMeno[j], strlen(rozdeleneMeno[j])+1);
                 }
                 else{ // Inak realokujem miesto pre priezvisko
                     aktualny_mena->priezvisko = (char*) realloc(aktualny_mena->priezvisko, strlen(aktualny_mena->priezvisko) + strlen(rozdeleneMeno[j])+2*sizeof(char));
                     strcat(aktualny_mena->priezvisko, " ");
-                    strcat(aktualny_mena->priezvisko, rozdeleneMeno[j]);
+                    strncat(aktualny_mena->priezvisko, rozdeleneMeno[j], strlen(rozdeleneMeno[j])+1);
                 }
             }
         }
+        free2Dchar(mena, dlzkaMena);
         aktualny_mena->dalsi = NULL;
     }
+    free2Dchar(mena, pocetPrezentujucich);
     return hlavicka_mena;
 }
 
