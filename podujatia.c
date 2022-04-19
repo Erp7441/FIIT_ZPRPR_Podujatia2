@@ -239,6 +239,8 @@ void k(SPAJANY_ZOZNAM* zoznam);
 void z(SPAJANY_ZOZNAM* zoznam);
 void p(SPAJANY_ZOZNAM* zoznam);
 void r(SPAJANY_ZOZNAM* zoznam);
+void a(SPAJANY_ZOZNAM* zoznam);
+void h(SPAJANY_ZOZNAM zoznam);
 
 int main () {
 
@@ -272,8 +274,10 @@ int main () {
                 z(&zoznamPodujatii);
                 break;
             case 'h':
+                h(zoznamPodujatii);
                 break;
             case 'a':
+                a(&zoznamPodujatii);
                 break;
             case 'r':
                 r(&zoznamPodujatii);
@@ -470,17 +474,6 @@ void n(SPAJANY_ZOZNAM* zoznam){
 
 void v(SPAJANY_ZOZNAM zoznam){
 
-    /*
-        1.
-        ID cislo : 15
-        Nazov prispevku: Deep learning
-        Mena autorov:
-        1: Jozko Mrkvicka
-        Typ prezentovania: UP
-        Cas prezentovania: 1120
-        Datum: 20200405
-     */
-
     if(!zoznam.hlavicka){
         printf("Prázdny zoznam záznamov.\n");
         return;
@@ -496,7 +489,7 @@ void v(SPAJANY_ZOZNAM zoznam){
         MENO_AUTORA* aktualny_mena = aktualny->menaAutorov;
         printf("Mena autorov:\n");
         for (int j = 1; aktualny_mena; j++) {
-            printf("%d: %s %s", j, aktualny_mena->meno, aktualny_mena->priezvisko);
+            printf("\t%d: %s %s", j, aktualny_mena->meno, aktualny_mena->priezvisko);
             if(aktualny_mena->dalsi){
                 printf("\n");
             }
@@ -516,7 +509,6 @@ void z(SPAJANY_ZOZNAM* zoznam){
     int bZmazat = 0;
     fgets(vstup, VELKOST_BUFFERA, stdin);
     vstup = retazecNaMale(vstup); // Konvertujem vstup na male bez \n
-    printf("%s\n", vstup);
 
     while(aktualny){
         MENO_AUTORA* aktualnyMeno = aktualny->menaAutorov;
@@ -609,6 +601,15 @@ void p(SPAJANY_ZOZNAM* zoznam){
     printf("DATUM: "); // TODO remove
     fgets(temp, 10, stdin);
     novyUzol->datum = atoi(temp);
+
+    if(zoznam->hlavicka == NULL){ // Ked je prazdny zoznam tak pridam prvy prvok do zoznamu
+        zoznam->hlavicka = novyUzol;
+        zoznam->chvost = novyUzol;
+        novyUzol->dalsi = NULL;
+        novyUzol->predchadzajuci = NULL;
+        zoznam->dlzka++;
+        return;
+    }
 
     if(c1 >= zoznam->dlzka){
         zoznam->chvost->dalsi = novyUzol;
@@ -703,6 +704,47 @@ void r(SPAJANY_ZOZNAM* zoznam){
         druhy->predchadzajuci->dalsi = druhy;
     }
 
+}
+
+void a(SPAJANY_ZOZNAM* zoznam){
+    
+}
+
+void h(SPAJANY_ZOZNAM zoznam){
+    int pocet = 0;
+    char *typVstup = (char*) calloc(4, sizeof(char));
+    fgets(typVstup, 4, stdin);
+
+    PODUJATIE* aktualny = zoznam.hlavicka;
+
+    while(aktualny){
+        if(strcmp(aktualny->typPrezentovania, typVstup) == 0){
+            pocet++;
+            printf("%d\n", pocet);
+            printf("ID cislo : %d\n", aktualny->ID);
+            printf("Nazov prispevku: %s", aktualny->nazovPrispevku);
+            
+            MENO_AUTORA* aktualny_mena = aktualny->menaAutorov;
+            printf("Mena autorov:\n");
+            for (int j = 1; aktualny_mena; j++) {
+                printf("\t%d: %s %s", j, aktualny_mena->meno, aktualny_mena->priezvisko);
+                if(aktualny_mena->dalsi){
+                    printf("\n");
+                }
+                aktualny_mena = aktualny_mena->dalsi;
+            }
+            printf("Typ prezentovania: %s", aktualny->typPrezentovania);
+            printf("Cas prezentovania: %d\n", aktualny->casPrezentovania);
+            printf("Datum: %d\n", aktualny->datum);
+        }
+        aktualny = aktualny->dalsi;
+    }
+
+    if(pocet == 0){
+        typVstup[strcspn(typVstup, "\n")] = 0;
+        printf("Pre typ: %s nie su ziadne zaznamy.\n", typVstup);
+    }
+        
 }
 
 // TODO uprav alebo zmaz tuto funkciu
