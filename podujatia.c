@@ -506,7 +506,7 @@ void z(SPAJANY_ZOZNAM* zoznam){
     if(!zoznam->hlavicka){ return; }
 
     PODUJATIE* aktualny = zoznam->hlavicka;
-    char* vstup = (char*)calloc(VELKOST_BUFFERA, sizeof(char));
+    char* vstup = (char*)calloc(VELKOST_BUFFERA+1, sizeof(char));
     int bZmazat = 0;
     fgets(vstup, VELKOST_BUFFERA, stdin);
     vstup = retazecNaMale(vstup); // Konvertujem vstup na male bez \n
