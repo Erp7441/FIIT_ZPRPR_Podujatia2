@@ -231,14 +231,12 @@ typedef struct spajanyZoznam{
 // Hlavne funkcie
 void n(SPAJANY_ZOZNAM* zoznam);
 void v(SPAJANY_ZOZNAM zoznam);
-void k(SPAJANY_ZOZNAM* zoznam);
-void z(SPAJANY_ZOZNAM* zoznam);
 void p(SPAJANY_ZOZNAM* zoznam);
-void r(SPAJANY_ZOZNAM* zoznam);
-void a(SPAJANY_ZOZNAM* zoznam);
+void z(SPAJANY_ZOZNAM* zoznam);
 void h(SPAJANY_ZOZNAM zoznam);
-
-char** rozdelitNaStringy(char* retazec, char delimiter, int* pocetRetazcov);
+void a(SPAJANY_ZOZNAM* zoznam);
+void r(SPAJANY_ZOZNAM* zoznam);
+void k(SPAJANY_ZOZNAM* zoznam);
 
 int main () {
 
@@ -249,14 +247,9 @@ int main () {
     zoznamPodujatii.dlzka = 0;
 
     do{
-
-        //*----------------------------------------------- Inicializácia ----------------------------------------------
-                
         scanf(" %c", &vyber);
         getchar();
-
-        //*---------------------------------------------- Výber možnosti ----------------------------------------------
-        
+                
         switch (vyber){
             case 'n':
                 n(&zoznamPodujatii);
@@ -333,7 +326,6 @@ void free2Dchar(char** pole, int dlzka){
     pole = NULL;
 }
 
-
 MENO_AUTORA* vytvorListMien(char* retazec){
     int pocetPrezentujucich = 0;
     char** mena = rozdelitNaStringy(retazec, '#', &pocetPrezentujucich);
@@ -341,7 +333,7 @@ MENO_AUTORA* vytvorListMien(char* retazec){
 
     for(int l = 0; l < pocetPrezentujucich; l++){
         int dlzkaMena = 0;
-        char** rozdeleneMeno = rozdelitNaStringy(mena[l], ' ', &dlzkaMena); // TODO fix... crashe probably v tejto funkcii na Windowse
+        char** rozdeleneMeno = rozdelitNaStringy(mena[l], ' ', &dlzkaMena);
         MENO_AUTORA* temp = aktualny_mena; // Ulozim si aktualny
         
         if(aktualny_mena){ // Pokial existuje aktualny tak sa posuniem o jeden uzol dopredu
@@ -375,42 +367,11 @@ MENO_AUTORA* vytvorListMien(char* retazec){
                 }
             }
         }
-        free2Dchar(mena, dlzkaMena);
+        free2Dchar(rozdeleneMeno, dlzkaMena);
         aktualny_mena->dalsi = NULL;
     }
     free2Dchar(mena, pocetPrezentujucich);
     return hlavicka_mena;
-}
-
-void k(SPAJANY_ZOZNAM* zoznam){
-
-    if(!zoznam->hlavicka){ return; }
-
-    PODUJATIE* aktualny = zoznam->hlavicka;
-    while (aktualny){
-        MENO_AUTORA* aktualnyMena = aktualny->menaAutorov;
-        while (aktualnyMena){
-            if(aktualnyMena->dalsi){
-                aktualnyMena = aktualnyMena->dalsi;
-                free(aktualnyMena->predchadzajuci);
-            }
-            else{
-                free(aktualnyMena);
-                aktualnyMena = NULL;
-            }
-        }
-        if(aktualny->dalsi){
-            aktualny = aktualny->dalsi;
-            free(aktualny->predchadzajuci);
-        }
-        else{
-            free(aktualny);
-            aktualny=NULL;
-        }
-    }
-    zoznam->hlavicka = NULL;
-    zoznam->chvost = NULL;
-    zoznam->dlzka = 0;
 }
 
 void n(SPAJANY_ZOZNAM* zoznam){
@@ -514,69 +475,6 @@ void v(SPAJANY_ZOZNAM zoznam){
     }
 }
 
-void z(SPAJANY_ZOZNAM* zoznam){
-
-    if(!zoznam->hlavicka){ return; }
-
-    PODUJATIE* aktualny = zoznam->hlavicka;
-    char* vstup = (char*)calloc(VELKOST_BUFFERA+1, sizeof(char));
-    int bZmazat = 0;
-    fgets(vstup, VELKOST_BUFFERA, stdin);
-    vstup = retazecNaMale(vstup); // Konvertujem vstup na male bez \n
-
-    while(aktualny){
-        MENO_AUTORA* aktualnyMeno = aktualny->menaAutorov;
-
-        // Prechadzam vsetky mena
-        while(aktualnyMeno){
-
-            // Spajam retazec mena a priezviska a konvertujem ho na male znaky bez \n
-            char* celeMeno = (char*) calloc(strlen(aktualnyMeno->meno)+strlen(aktualnyMeno->priezvisko)+2, sizeof(char));
-            strcpy(celeMeno, aktualnyMeno->meno);
-            strcat(celeMeno, " ");
-            strcat(celeMeno, aktualnyMeno->priezvisko);
-            celeMeno = retazecNaMale(celeMeno);
-
-            // Pokial sa mi zhoduje s vstupom tak oznacim tento zaznam na zmazanie
-            if(strcmp(vstup, celeMeno)==0){
-                bZmazat = 1;
-                break;
-            }
-            aktualnyMeno = aktualnyMeno->dalsi;
-        }
-        if(bZmazat==1){
-
-            // Zmazem vsetky mena oznaceneho uzla
-            MENO_AUTORA* aktualnyMenoZmazat = aktualny->menaAutorov;
-            while(aktualnyMenoZmazat){
-                MENO_AUTORA* pomocna = aktualnyMenoZmazat->dalsi;
-                free(aktualnyMenoZmazat);
-                aktualnyMenoZmazat = pomocna;
-            }
-
-            // Pokial existuje predchadzajuci tak ho spojim s nasledovnym...
-            // ... Tym padom ako keby vyhodim aktualny von z listu
-            if(aktualny->predchadzajuci){
-                aktualny->predchadzajuci->dalsi = aktualny->dalsi;
-            }
-            else{ // Pokial neexistuje predchadzajuci tak nastavim hlavicku ako dalsi
-                zoznam->hlavicka = aktualny->dalsi;
-                if(zoznam->hlavicka){ // Dalsi nemusi vzdy existovat (napr. zmazanie celeho listu)
-                    (zoznam->hlavicka)->predchadzajuci = NULL; // Kedze sa jedna o hlavicku tak nastavim predchadzajuci na NULL
-                }
-            }
-            aktualny->nazovPrispevku[strcspn(aktualny->nazovPrispevku, "\n")] = '\0'; // Zbavim sa entera pri nazvu prispevku
-            printf("Prispevok s názvom %s bol vymazany.\n", aktualny->nazovPrispevku);
-            PODUJATIE* pomocny = aktualny; // Ulozim si aktualny uzol
-            aktualny = aktualny->dalsi; // Posuniem sa na dalsi udaj
-            free(pomocny); // A uviolnim stary uzol
-            zoznam->dlzka--;
-            bZmazat=0; // Resetujem "boolean"
-        }
-        else{ aktualny = aktualny->dalsi; } // Pokial nemam co vymazat idem na dalsi uzol
-    }
-}
-
 void p(SPAJANY_ZOZNAM* zoznam){
 
     PODUJATIE* aktualny = zoznam->hlavicka;
@@ -648,6 +546,164 @@ void p(SPAJANY_ZOZNAM* zoznam){
     
 }
 
+void z(SPAJANY_ZOZNAM* zoznam){
+
+    if(!zoznam->hlavicka){ return; }
+
+    PODUJATIE* aktualny = zoznam->hlavicka;
+    char* vstup = (char*)calloc(VELKOST_BUFFERA+1, sizeof(char));
+    int bZmazat = 0;
+    fgets(vstup, VELKOST_BUFFERA, stdin);
+    vstup = retazecNaMale(vstup); // Konvertujem vstup na male bez \n
+
+    while(aktualny){
+        MENO_AUTORA* aktualnyMeno = aktualny->menaAutorov;
+
+        // Prechadzam vsetky mena
+        while(aktualnyMeno){
+
+            // Spajam retazec mena a priezviska a konvertujem ho na male znaky bez \n
+            char* celeMeno = (char*) calloc(strlen(aktualnyMeno->meno)+strlen(aktualnyMeno->priezvisko)+2, sizeof(char));
+            strcpy(celeMeno, aktualnyMeno->meno);
+            strcat(celeMeno, " ");
+            strcat(celeMeno, aktualnyMeno->priezvisko);
+            celeMeno = retazecNaMale(celeMeno);
+
+            // Pokial sa mi zhoduje s vstupom tak oznacim tento zaznam na zmazanie
+            if(strcmp(vstup, celeMeno)==0){
+                bZmazat = 1;
+                free(celeMeno);
+                celeMeno = NULL;
+                break;
+            }
+            aktualnyMeno = aktualnyMeno->dalsi;
+        }
+        if(bZmazat==1){
+
+            // Zmazem vsetky mena oznaceneho uzla
+            MENO_AUTORA* aktualnyMenoZmazat = aktualny->menaAutorov;
+            while(aktualnyMenoZmazat){
+                MENO_AUTORA* pomocna = aktualnyMenoZmazat->dalsi;
+                free(aktualnyMenoZmazat);
+                aktualnyMenoZmazat = pomocna;
+            }
+
+            // Pokial existuje predchadzajuci tak ho spojim s nasledovnym...
+            // ... Tym padom ako keby vyhodim aktualny von z listu
+            if(aktualny->predchadzajuci){
+                aktualny->predchadzajuci->dalsi = aktualny->dalsi;
+            }
+            else{ // Pokial neexistuje predchadzajuci tak nastavim hlavicku ako dalsi
+                zoznam->hlavicka = aktualny->dalsi;
+                if(zoznam->hlavicka){ // Dalsi nemusi vzdy existovat (napr. zmazanie celeho listu)
+                    (zoznam->hlavicka)->predchadzajuci = NULL; // Kedze sa jedna o hlavicku tak nastavim predchadzajuci na NULL
+                }
+            }
+            aktualny->nazovPrispevku[strcspn(aktualny->nazovPrispevku, "\n")] = '\0'; // Zbavim sa entera pri nazvu prispevku
+            printf("Prispevok s názvom %s bol vymazany.\n", aktualny->nazovPrispevku);
+            PODUJATIE* pomocny = aktualny; // Ulozim si aktualny uzol
+            aktualny = aktualny->dalsi; // Posuniem sa na dalsi udaj
+            free(pomocny); // A uviolnim stary uzol
+            zoznam->dlzka--;
+            bZmazat=0; // Resetujem "boolean"
+        }
+        else{ aktualny = aktualny->dalsi; } // Pokial nemam co vymazat idem na dalsi uzol
+    }
+    free(vstup);
+}
+
+void h(SPAJANY_ZOZNAM zoznam){
+
+    if(!zoznam.hlavicka){ return; }
+    
+    int pocet = 0;
+    char *typVstup = (char*) calloc(4, sizeof(char));
+    fgets(typVstup, 4, stdin);
+
+    PODUJATIE* aktualny = zoznam.hlavicka;
+
+    while(aktualny){
+        if(strcmp(aktualny->typPrezentovania, typVstup) == 0){
+            pocet++;
+            printf("%d\n", pocet);
+            printf("ID cislo : %d\n", aktualny->ID);
+            printf("Nazov prispevku: %s", aktualny->nazovPrispevku);
+            
+            MENO_AUTORA* aktualny_mena = aktualny->menaAutorov;
+            printf("Mena autorov:\n");
+            for (int j = 1; aktualny_mena; j++) {
+                printf("\t%d: %s %s", j, aktualny_mena->meno, aktualny_mena->priezvisko);
+                if(aktualny_mena->dalsi){
+                    printf("\n");
+                }
+                aktualny_mena = aktualny_mena->dalsi;
+            }
+            printf("Typ prezentovania: %s", aktualny->typPrezentovania);
+            printf("Cas prezentovania: %d\n", aktualny->casPrezentovania);
+            printf("Datum: %d\n", aktualny->datum);
+        }
+        aktualny = aktualny->dalsi;
+    }
+
+    if(pocet == 0){
+        typVstup[strcspn(typVstup, "\n")] = 0;
+        printf("Pre typ: %s nie su ziadne zaznamy.\n", typVstup);
+    }
+    free(typVstup);
+    typVstup = NULL;
+}
+
+void a(SPAJANY_ZOZNAM* zoznam){
+    
+    if(!zoznam->hlavicka){ return; } 
+
+    int IDVstup = 0;
+    char* typVstup = (char*) calloc(4, sizeof(char));
+    
+    while(1){
+        scanf(" %d%s", &IDVstup, typVstup);
+        getchar();
+
+        if(
+            IDVstup % 15 != 0 ||
+            (
+                strcmp(typVstup, "UP") != 0 && 
+                strcmp(typVstup, "UD") != 0 && 
+                strcmp(typVstup, "PP") != 0 && 
+                strcmp(typVstup, "PD") != 0
+            )
+            
+        ){
+            printf("Zadane udaje nie su korektne, zadaj novy retazec:");
+            continue;
+        }
+        break;
+    }
+
+    PODUJATIE* aktualny = zoznam->hlavicka;
+    char* predchadzajuciTyp = NULL;
+    strcat(typVstup, "\n");
+
+    while(aktualny){
+        if(aktualny->ID == IDVstup){
+            predchadzajuciTyp = (char*) calloc(4, sizeof(char));
+            strcpy(predchadzajuciTyp, aktualny->typPrezentovania);
+            strcpy(aktualny->typPrezentovania, typVstup);
+            break;
+        }
+    }    
+
+    if(predchadzajuciTyp){
+        printf("Prispevok s nazvom %.*s sa bude prezentovat %.*s[%.*s].\n",
+            (int)strlen(aktualny->nazovPrispevku)-1, aktualny->nazovPrispevku,
+            (int)strlen(aktualny->typPrezentovania)-1, aktualny->typPrezentovania,
+            (int)strlen(predchadzajuciTyp)-1, predchadzajuciTyp
+        );
+    }
+    free(typVstup);
+    typVstup = NULL;
+}
+
 void r(SPAJANY_ZOZNAM* zoznam){
 
     if(!zoznam->hlavicka){ return; }
@@ -713,91 +769,33 @@ void r(SPAJANY_ZOZNAM* zoznam){
 
 }
 
-void a(SPAJANY_ZOZNAM* zoznam){
-    
-    if(!zoznam->hlavicka){ return; } 
+void k(SPAJANY_ZOZNAM* zoznam){
 
-    int IDVstup = 0;
-    char* typVstup = (char*) calloc(4, sizeof(char));
-    
-    while(1){
-        scanf(" %d%s", &IDVstup, typVstup);
-        getchar();
-
-        if(
-            IDVstup % 15 != 0 ||
-            (
-                strcmp(typVstup, "UP") != 0 && 
-                strcmp(typVstup, "UD") != 0 && 
-                strcmp(typVstup, "PP") != 0 && 
-                strcmp(typVstup, "PD") != 0
-            )
-            
-        ){
-            printf("Zadane udaje nie su korektne, zadaj novy retazec:");
-            continue;
-        }
-        break;
-    }
+    if(!zoznam->hlavicka){ return; }
 
     PODUJATIE* aktualny = zoznam->hlavicka;
-    char* predchadzajuciTyp = NULL;
-    strcat(typVstup, "\n");
-
-    while(aktualny){
-        if(aktualny->ID == IDVstup){
-            predchadzajuciTyp = (char*) calloc(4, sizeof(char));
-            strcpy(predchadzajuciTyp, aktualny->typPrezentovania);
-            strcpy(aktualny->typPrezentovania, typVstup);
-            break;
-        }
-    }    
-
-    if(predchadzajuciTyp){
-        printf("Prispevok s nazvom %.*s sa bude prezentovat %.*s[%.*s].\n",
-            (int)strlen(aktualny->nazovPrispevku)-1, aktualny->nazovPrispevku,
-            (int)strlen(aktualny->typPrezentovania)-1, aktualny->typPrezentovania,
-            (int)strlen(predchadzajuciTyp)-1, predchadzajuciTyp
-        );
-    }    
-}
-
-void h(SPAJANY_ZOZNAM zoznam){
-
-    if(!zoznam.hlavicka){ return; }
-    
-    int pocet = 0;
-    char *typVstup = (char*) calloc(4, sizeof(char));
-    fgets(typVstup, 4, stdin);
-
-    PODUJATIE* aktualny = zoznam.hlavicka;
-
-    while(aktualny){
-        if(strcmp(aktualny->typPrezentovania, typVstup) == 0){
-            pocet++;
-            printf("%d\n", pocet);
-            printf("ID cislo : %d\n", aktualny->ID);
-            printf("Nazov prispevku: %s", aktualny->nazovPrispevku);
-            
-            MENO_AUTORA* aktualny_mena = aktualny->menaAutorov;
-            printf("Mena autorov:\n");
-            for (int j = 1; aktualny_mena; j++) {
-                printf("\t%d: %s %s", j, aktualny_mena->meno, aktualny_mena->priezvisko);
-                if(aktualny_mena->dalsi){
-                    printf("\n");
-                }
-                aktualny_mena = aktualny_mena->dalsi;
+    while (aktualny){
+        MENO_AUTORA* aktualnyMena = aktualny->menaAutorov;
+        while (aktualnyMena){
+            if(aktualnyMena->dalsi){
+                aktualnyMena = aktualnyMena->dalsi;
+                free(aktualnyMena->predchadzajuci);
             }
-            printf("Typ prezentovania: %s", aktualny->typPrezentovania);
-            printf("Cas prezentovania: %d\n", aktualny->casPrezentovania);
-            printf("Datum: %d\n", aktualny->datum);
+            else{
+                free(aktualnyMena);
+                aktualnyMena = NULL;
+            }
         }
-        aktualny = aktualny->dalsi;
+        if(aktualny->dalsi){
+            aktualny = aktualny->dalsi;
+            free(aktualny->predchadzajuci);
+        }
+        else{
+            free(aktualny);
+            aktualny=NULL;
+        }
     }
-
-    if(pocet == 0){
-        typVstup[strcspn(typVstup, "\n")] = 0;
-        printf("Pre typ: %s nie su ziadne zaznamy.\n", typVstup);
-    }
-        
+    zoznam->hlavicka = NULL;
+    zoznam->chvost = NULL;
+    zoznam->dlzka = 0;
 }
