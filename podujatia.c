@@ -228,7 +228,6 @@ typedef struct spajanyZoznam{
     int dlzka;
 } SPAJANY_ZOZNAM;
 
-// Hlavne funkcie
 void n(SPAJANY_ZOZNAM* zoznam);
 void v(SPAJANY_ZOZNAM zoznam);
 void p(SPAJANY_ZOZNAM* zoznam);
@@ -238,9 +237,9 @@ void a(SPAJANY_ZOZNAM* zoznam);
 void r(SPAJANY_ZOZNAM* zoznam);
 void k(SPAJANY_ZOZNAM* zoznam);
 
-int main () {
+int main (){
 
-    char vyber;
+    char vyber = '\0';
     SPAJANY_ZOZNAM zoznamPodujatii;
     zoznamPodujatii.hlavicka = NULL;
     zoznamPodujatii.chvost = NULL;
@@ -424,11 +423,9 @@ void n(SPAJANY_ZOZNAM* zoznam){
             case 4:
                 aktualny->typPrezentovania = (char*) calloc(strlen(riadok)+1, sizeof(char));
                 strcpy(aktualny->typPrezentovania, riadok);
-                //printf("Typ prezentovania: %s", riadok);
                 break;
             case 5:
                 aktualny->casPrezentovania = atoi(riadok);
-                //printf("Cas prezentovania:  %s", riadok);
                 break;
             case 6:
                 aktualny->datum = atoi(riadok);
