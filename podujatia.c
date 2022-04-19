@@ -323,6 +323,7 @@ char* retazecNaMale(char* retazec){
     return malyRetazec;
 }
 
+// TODO fix... crashe probably v tejto funkcii na Windowse
 MENO_AUTORA* vytvorListMien(char* retazec){
     int pocetPrezentujucich = 0;
     char** mena = rozdelitNaStringy(retazec, "#", &pocetPrezentujucich);
