@@ -202,7 +202,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#define VELKOST_BUFFERA 200
+#define VELKOST_BUFFERA 203
 
 typedef struct menoAutora{
     char* meno;
