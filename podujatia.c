@@ -593,7 +593,7 @@ void z(SPAJANY_ZOZNAM* zoznam){
             else{ // Pokial neexistuje predchadzajuci tak nastavim hlavicku ako dalsi
                 zoznam->hlavicka = aktualny->dalsi;
                 if(zoznam->hlavicka){ // Dalsi nemusi vzdy existovat (napr. zmazanie celeho listu)
-                    (zoznam->hlavicka)->predchadzajuci = NULL; // Kedze sa jedna o hlavicku tak nastavim predchadzajuci na NULL
+                    zoznam->hlavicka->predchadzajuci = NULL; // Kedze sa jedna o hlavicku tak nastavim predchadzajuci na NULL
                 }
             }
             if(aktualny->dalsi){ // Pokial existuje dalsi tak ho spojim s predchadzajucim
