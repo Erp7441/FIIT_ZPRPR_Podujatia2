@@ -596,6 +596,13 @@ void z(SPAJANY_ZOZNAM* zoznam){
                     (zoznam->hlavicka)->predchadzajuci = NULL; // Kedze sa jedna o hlavicku tak nastavim predchadzajuci na NULL
                 }
             }
+            if(aktualny->dalsi){ // Pokial existuje dalsi tak ho spojim s predchadzajucim
+                aktualny->dalsi->predchadzajuci = aktualny->predchadzajuci;
+                //zoznam->chvost = aktualny->predchadzajuci;
+            }
+            if(aktualny == zoznam->chvost){
+                zoznam->chvost = aktualny->predchadzajuci;
+            }
             aktualny->nazovPrispevku[strcspn(aktualny->nazovPrispevku, "\n")] = '\0'; // Zbavim sa entera pri nazvu prispevku
             printf("Prispevok s názvom %s bol vymazany.\n", aktualny->nazovPrispevku);
             PODUJATIE* pomocny = aktualny; // Ulozim si aktualny uzol
