@@ -665,7 +665,7 @@ void a(SPAJANY_ZOZNAM* zoznam){
     char* typVstup = (char*) calloc(4, sizeof(char));
     
     while(1){
-        scanf(" %d%s", &IDVstup, typVstup);
+        scanf(" %d %s", &IDVstup, typVstup);
         getchar();
 
         if(
@@ -695,6 +695,7 @@ void a(SPAJANY_ZOZNAM* zoznam){
             strcpy(aktualny->typPrezentovania, typVstup);
             break;
         }
+        aktualny = aktualny->dalsi;
     }    
 
     if(predchadzajuciTyp){
