@@ -529,6 +529,8 @@ void p(SPAJANY_ZOZNAM* zoznam){
             if(aktualny->predchadzajuci){
                 novyUzol->predchadzajuci = aktualny->predchadzajuci;
                 aktualny->predchadzajuci->dalsi = novyUzol;
+                //? Nezabudol som na toto
+                //TODO akutalny->predchadzajuci = novyUzol->predchadzajuci; ?
             }
             else{
                 novyUzol->predchadzajuci = NULL;
